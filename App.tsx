@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Layout } from './components/Layout';
 import { ScheduleRow } from './types';
 import { geminiService } from './services/geminiService';
@@ -11,9 +11,32 @@ const App: React.FC = () => {
   const [level, setLevel] = useState(ATTAINMENT_LEVELS[0]);
   const [planRows, setPlanRows] = useState<ScheduleRow[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState("✨ Đang thiết lập...");
+
+  const loadingSteps = [
+    "🔍 Đang phân tích chương trình GDPT 2018...",
+    "📚 Đang soạn thảo mạch nội dung kiến thức...",
+    "💻 Đang tích hợp năng lực số chuẩn Thông tư 02...",
+    "📝 Đang hoàn thiện kế hoạch 35 tuần học...",
+    "⚡ Sắp xong rồi, vui lòng đợi trong giây lát..."
+  ];
+
+  useEffect(() => {
+    let interval: any;
+    if (isLoading) {
+      let step = 0;
+      setLoadingMessage(loadingSteps[0]);
+      interval = setInterval(() => {
+        step = (step + 1) % loadingSteps.length;
+        setLoadingMessage(loadingSteps[step]);
+      }, 4000);
+    }
+    return () => clearInterval(interval);
+  }, [isLoading]);
 
   const handleGenerate = async () => {
     setIsLoading(true);
+    setPlanRows([]); // Xóa dữ liệu cũ để tránh nhầm lẫn
     try {
       const result = await geminiService.generateFullPlan(subject, grade, level);
       if (Array.isArray(result)) {
@@ -27,7 +50,7 @@ const App: React.FC = () => {
       }
     } catch (error: any) {
       console.error("Generate error:", error);
-      alert(`⚠️ Không thể tạo kế hoạch: ${error.message}`);
+      alert(`⚠️ Không thể tạo kế hoạch: ${error.message}. Vui lòng thử lại sau vài giây.`);
     } finally {
       setIsLoading(false);
     }
@@ -40,10 +63,8 @@ const App: React.FC = () => {
   const exportToExcel = () => {
     if (planRows.length === 0) return alert("Chưa có dữ liệu để xuất! Vui lòng tạo kế hoạch trước.");
     
-    // Header cho file CSV
-    const headers = ["Tuần", "Chủ đề", "Tên bài học", "Số tiết", "Mã NLS", "Nội dung tích hợp", "Ghi chú"];
+    const headers = ["Tuần", "Chủ đề/Mạch nội dung", "Tên bài học", "Số tiết", "Mã NLS", "Nội dung tích hợp", "Ghi chú"];
     
-    // Chuyển đổi dữ liệu, xử lý dấu phẩy và ngoặc kép để không bị lệch cột trong Excel
     const csvRows = planRows.map(row => {
       const escape = (val: any) => `"${String(val).replace(/"/g, '""')}"`;
       return [
@@ -66,7 +87,6 @@ const App: React.FC = () => {
       link.href = url;
       link.download = `KH_35Tuan_${subject.replace(/\s+/g, '_')}_${grade.replace(/\s+/g, '_')}.csv`;
       
-      // Hỗ trợ tốt hơn cho trình duyệt di động
       document.body.appendChild(link);
       link.click();
       setTimeout(() => {
@@ -85,7 +105,6 @@ const App: React.FC = () => {
 
   return (
     <Layout>
-      {/* Cấu hình hiển thị */}
       <div className="flex flex-wrap items-center justify-end gap-2 mb-8 no-print">
         {REGULATION_TAGS.map(tag => (
           <span key={tag.id} className="bg-slate-100 text-slate-600 text-[10px] font-bold px-3 py-1.5 rounded uppercase border border-slate-200">
@@ -106,7 +125,6 @@ const App: React.FC = () => {
         </div>
       </div>
 
-      {/* Bộ lọc AI */}
       <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm mb-10 no-print">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-end">
           <div className="space-y-2">
@@ -114,7 +132,7 @@ const App: React.FC = () => {
             <select 
               value={subject} 
               onChange={(e) => setSubject(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold focus:ring-2 focus:ring-indigo-500 outline-none"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold focus:ring-2 focus:ring-indigo-500 outline-none transition-all focus:border-indigo-500"
             >
               {SUBJECTS.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
@@ -124,7 +142,7 @@ const App: React.FC = () => {
             <select 
               value={grade} 
               onChange={(e) => setGrade(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold focus:ring-2 focus:ring-indigo-500 outline-none"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold focus:ring-2 focus:ring-indigo-500 outline-none transition-all focus:border-indigo-500"
             >
               {GRADES.map(g => <option key={g} value={g}>{g}</option>)}
             </select>
@@ -134,7 +152,7 @@ const App: React.FC = () => {
             <select 
               value={level} 
               onChange={(e) => setLevel(e.target.value)}
-              className="w-full bg-indigo-50 text-indigo-700 border border-indigo-100 rounded-xl px-4 py-3 text-sm font-semibold focus:ring-2 focus:ring-indigo-500 outline-none"
+              className="w-full bg-indigo-50 text-indigo-700 border border-indigo-100 rounded-xl px-4 py-3 text-sm font-semibold focus:ring-2 focus:ring-indigo-500 outline-none transition-all focus:border-indigo-500"
             >
               {ATTAINMENT_LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
             </select>
@@ -142,21 +160,28 @@ const App: React.FC = () => {
           <button 
             onClick={handleGenerate}
             disabled={isLoading}
-            className={`rounded-xl py-3.5 font-bold transition shadow-lg flex items-center justify-center space-x-2 w-full ${
-              isLoading ? 'bg-slate-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-100'
+            className={`rounded-xl py-3.5 font-bold transition shadow-lg flex items-center justify-center space-x-2 w-full active:scale-95 ${
+              isLoading ? 'bg-slate-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-200'
             }`}
           >
-            {isLoading ? "Đang thiết lập..." : "✨ Thiết lập bằng AI"}
+            {isLoading ? (
+              <div className="flex items-center">
+                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span className="text-xs">{loadingMessage}</span>
+              </div>
+            ) : "✨ Thiết lập bằng AI"}
           </button>
         </div>
       </div>
 
-      {/* Bảng dữ liệu */}
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden container-box">
+      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden container-box min-h-[400px]">
         <div className="p-6 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-50/50 no-print">
           <h2 className="text-lg font-bold text-slate-700 uppercase flex items-center">
             <span className="w-1 h-6 bg-indigo-500 mr-3 rounded-full"></span>
-            Chi tiết kế hoạch
+            Chi tiết kế hoạch dạy học
           </h2>
           <div className="flex space-x-2">
             <button 
@@ -179,7 +204,7 @@ const App: React.FC = () => {
             <thead>
               <tr className="bg-slate-50 text-[11px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200 print:bg-white print:text-black">
                 <th className="px-6 py-4 border-r border-slate-200 w-20">Tuần</th>
-                <th className="px-6 py-4 border-r border-slate-200 min-w-[150px]">Chủ đề</th>
+                <th className="px-6 py-4 border-r border-slate-200 min-w-[280px]">Chủ đề/Mạch nội dung</th>
                 <th className="px-6 py-4 border-r border-slate-200 min-w-[200px]">Tên bài học</th>
                 <th className="px-6 py-4 border-r border-slate-200 w-16 text-center">Tiết</th>
                 <th className="px-6 py-4 border-r border-slate-200 w-32">Mã NLS</th>
@@ -190,15 +215,27 @@ const App: React.FC = () => {
             <tbody className="divide-y divide-slate-100">
               {planRows.length === 0 ? (
                 <tr className="no-print">
-                  <td colSpan={7} className="px-6 py-20 text-center text-slate-400 italic">
-                    Chưa có dữ liệu. Vui lòng nhấn "Thiết lập bằng AI" để bắt đầu.
+                  <td colSpan={7} className="px-6 py-32 text-center">
+                    {isLoading ? (
+                      <div className="flex flex-col items-center justify-center space-y-4">
+                        <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+                        <p className="text-slate-500 font-medium">{loadingMessage}</p>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center space-y-2">
+                        <div className="text-4xl">🗓️</div>
+                        <p className="text-slate-400 italic">Chưa có dữ liệu. Vui lòng nhấn "Thiết lập bằng AI" để bắt đầu.</p>
+                      </div>
+                    )}
                   </td>
                 </tr>
               ) : (
                 planRows.map((row) => (
                   <tr key={row.id} className="hover:bg-slate-50/50 transition-colors text-sm">
                     <td className="px-6 py-4 border-r border-slate-100 font-bold text-slate-700">{row.weekMonth}</td>
-                    <td className="px-6 py-4 border-r border-slate-100 text-slate-600 font-medium">{row.theme}</td>
+                    <td className="px-6 py-4 border-r border-slate-100 text-slate-600 font-medium whitespace-pre-wrap leading-relaxed">
+                      {row.theme}
+                    </td>
                     <td className="px-6 py-4 border-r border-slate-100 text-slate-900 font-bold">{row.lessonName}</td>
                     <td className="px-6 py-4 border-r border-slate-100 text-center font-bold text-indigo-600 print:text-black">{row.periods}</td>
                     <td className="px-6 py-4 border-r border-slate-100">
@@ -226,7 +263,6 @@ const App: React.FC = () => {
         </div>
       </div>
       
-      {/* Chữ ký khi in PDF */}
       <div className="print-footer">
         <div className="text-center w-64">
           <p className="font-bold">Người lập kế hoạch</p>

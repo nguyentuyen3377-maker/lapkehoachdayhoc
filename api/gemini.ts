@@ -13,23 +13,35 @@ export default async function handler(req: any, res: any) {
     return res.status(400).json({ error: 'Thiếu thông tin đầu vào' });
   }
 
-  // Hỗ trợ cả hai cách đặt tên biến môi trường
-  const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY;
+  // Sử dụng API_KEY theo hướng dẫn
+  const apiKey = process.env.API_KEY;
   
   if (!apiKey) {
-    return res.status(500).json({ error: 'Chưa cấu hình API Key. Hãy kiểm tra biến môi trường GEMINI_API_KEY trên Vercel.' });
+    return res.status(500).json({ error: 'API Key không khả dụng.' });
   }
 
   const ai = new GoogleGenAI({ apiKey });
 
-  // Prompt siêu ngắn gọn để AI xử lý nhanh nhất có thể
-  const prompt = `Lập KH dạy học 35 tuần cho môn ${subject}, ${grade}, mức độ ${level}. 
-  Yêu cầu: JSON array 35 objects. Các trường: weekMonth (Tuần X), theme (ngắn), lessonName (ngắn), periods (1-2), digitalCompetencyCode (Mã NLS), integrationSuggestions (Gợi ý ngắn). 
-  Tuân thủ GDPT 2018 và TT 02/2025.`;
+  // Prompt được tinh chỉnh để tối ưu hóa độ dài và chất lượng nội dung chuyên môn
+  const prompt = `Bạn là chuyên gia sư phạm tiểu học. Hãy lập kế hoạch dạy học môn ${subject} lớp ${grade} cho cả năm học (35 tuần).
+  Mức độ đạt được mục tiêu: ${level}.
+  
+  Yêu cầu cực kỳ quan trọng cho cột "theme":
+  Phải bao gồm: [Tên Chủ đề] + [Mạch nội dung/Kiến thức].
+  Trong đó, mạch nội dung phải trình bày dưới dạng các gạch đầu dòng ngắn gọn, sử dụng động từ chỉ mức độ nhận thức:
+  - Nêu được...
+  - Nhận biết được...
+  - Nhận diện được...
+  - Thực hiện được...
+  
+  Cấu trúc trả về: JSON array gồm 35 objects tương ứng 35 tuần.
+  Các trường: weekMonth, theme, lessonName, periods, digitalCompetencyCode, integrationSuggestions.
+  
+  Đảm bảo nội dung bám sát Chương trình GDPT 2018 và khung năng lực số của Bộ GD&ĐT.`;
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-flash-lite-latest', // Model nhanh nhất để tránh Timeout
+      model: 'gemini-3-flash-preview', // Sử dụng mô hình flash mới nhất để xử lý nhanh và mạnh
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -43,15 +55,12 @@ export default async function handler(req: any, res: any) {
               lessonName: { type: Type.STRING },
               periods: { type: Type.NUMBER },
               digitalCompetencyCode: { type: Type.STRING },
-              integrationSuggestions: { type: Type.STRING },
-              note: { type: Type.STRING }
+              integrationSuggestions: { type: Type.STRING }
             },
             required: ["weekMonth", "theme", "lessonName", "periods", "digitalCompetencyCode", "integrationSuggestions"]
           }
         },
-        temperature: 0.1,
-        // Vô hiệu hóa thinking để phản hồi nhanh nhất có thể
-        thinkingConfig: { thinkingBudget: 0 }
+        temperature: 1, // Tăng tính sáng tạo nhưng vẫn giữ trong khung schema
       },
     });
 
@@ -61,7 +70,6 @@ export default async function handler(req: any, res: any) {
     return res.status(200).json({ text });
   } catch (error: any) {
     console.error('Gemini API Error:', error);
-    // Trả về lỗi chi tiết để frontend hiển thị cho người dùng
     return res.status(500).json({ 
       error: 'Lỗi hệ thống', 
       message: error.message || 'Có lỗi xảy ra trong quá trình tạo kế hoạch.'
