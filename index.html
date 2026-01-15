@@ -1,0 +1,90 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduPlan Pro - Kế hoạch Dạy học 35 Tuần</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        
+        @media print {
+            @page { 
+                margin: 10mm; 
+                size: landscape; 
+            }
+            body { 
+                background: white; 
+                -webkit-print-color-adjust: exact; 
+                print-color-adjust: exact;
+            }
+            header, footer, nav, .print-hidden, button, select, label, .no-print { 
+                display: none !important; 
+            }
+            main {
+                padding: 0 !important;
+                margin: 0 !important;
+                max-width: 100% !important;
+            }
+            .container-box {
+                border: none !important;
+                box-shadow: none !important;
+                padding: 0 !important;
+            }
+            table { 
+                width: 100% !important; 
+                border-collapse: collapse !important; 
+                table-layout: auto !important;
+                font-size: 9pt !important;
+            }
+            th, td { 
+                border: 1px solid #333 !important; 
+                padding: 6px !important; 
+                color: black !important;
+                word-wrap: break-word !important;
+            }
+            th {
+                background-color: #f3f4f6 !important;
+                font-weight: bold !important;
+            }
+            .badge-nls {
+                background: transparent !important;
+                border: none !important;
+                padding: 0 !important;
+                font-weight: bold !important;
+                color: black !important;
+            }
+            h1 { 
+                color: black !important; 
+                font-size: 16pt !important;
+                margin-bottom: 10px !important;
+                text-align: center !important;
+            }
+            .print-footer {
+                display: flex !important;
+                justify-content: space-between;
+                margin-top: 30px;
+                font-size: 10pt;
+            }
+        }
+        .print-footer { display: none; }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@^19.2.3",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "@google/genai": "https://esm.sh/@google/genai@^1.35.0"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+<body class="bg-slate-50">
+    <div id="root"></div>
+<script type="module" src="/index.tsx"></script>
+</body>
+</html>

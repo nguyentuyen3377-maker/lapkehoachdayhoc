@@ -1,0 +1,8 @@
+{
+  "name": "EduPlan Pro - Kế hoạch Dạy học 35 Tuần & Năng lực Số",
+  "description": "Ứng dụng hỗ trợ giáo viên Tiểu học xây dựng kế hoạch dạy học 35 tuần tích hợp khung năng lực số theo các thông tư và công văn mới nhất của Bộ Giáo dục và Đào tạo.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
