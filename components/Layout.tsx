@@ -3,12 +3,14 @@ import React from 'react';
 
 interface LayoutProps {
   children: React.ReactNode;
+  onExportDocx?: () => void;
+  isDataReady?: boolean;
 }
 
-export const Layout: React.FC<LayoutProps> = ({ children }) => {
+export const Layout: React.FC<LayoutProps> = ({ children, onExportDocx, isDataReady }) => {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
+      <header className="bg-white border-b border-slate-200 sticky top-0 z-50 no-print">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-xl">
@@ -23,7 +25,15 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             <a href="#" className="text-sm font-medium text-slate-600 hover:text-indigo-600">Tổng quan</a>
             <a href="#" className="text-sm font-medium text-indigo-600 border-b-2 border-indigo-600 pb-1">35 Tuần Học</a>
             <a href="#" className="text-sm font-medium text-slate-600 hover:text-indigo-600">Báo cáo</a>
-            <button className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition shadow-sm">
+            <button 
+              onClick={onExportDocx}
+              disabled={!isDataReady}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm ${
+                isDataReady 
+                ? 'bg-indigo-600 text-white hover:bg-indigo-700 active:scale-95' 
+                : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+              }`}
+            >
               Xuất kế hoạch (.docx)
             </button>
           </nav>
@@ -32,7 +42,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       <main className="flex-1 max-w-7xl mx-auto px-4 py-8 w-full">
         {children}
       </main>
-      <footer className="bg-white border-t border-slate-200 py-6 mt-12">
+      <footer className="bg-white border-t border-slate-200 py-6 mt-12 no-print">
         <div className="max-w-7xl mx-auto px-4 text-center text-slate-500 text-sm">
           &copy; 2025 EduPlan Pro. Hỗ trợ chuyển đổi số giáo dục Tiểu học.
         </div>

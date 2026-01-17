@@ -36,7 +36,7 @@ const App: React.FC = () => {
 
   const handleGenerate = async () => {
     setIsLoading(true);
-    setPlanRows([]); // Xóa dữ liệu cũ để tránh nhầm lẫn
+    setPlanRows([]); 
     try {
       const result = await geminiService.generateFullPlan(subject, grade, level);
       if (Array.isArray(result)) {
@@ -86,16 +86,98 @@ const App: React.FC = () => {
       const link = document.createElement("a");
       link.href = url;
       link.download = `KH_35Tuan_${subject.replace(/\s+/g, '_')}_${grade.replace(/\s+/g, '_')}.csv`;
-      
       document.body.appendChild(link);
       link.click();
-      setTimeout(() => {
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-      }, 100);
+      document.body.removeChild(link);
     } catch (e) {
-      alert("Lỗi khi tải file. Vui lòng thử lại.");
+      alert("Lỗi khi tải file Excel.");
     }
+  };
+
+  const exportToDocx = () => {
+    if (planRows.length === 0) return alert("Vui lòng tạo dữ liệu trước khi xuất Word.");
+
+    const headerHtml = `
+      <div style="text-align: center; margin-bottom: 20px;">
+        <h2 style="text-transform: uppercase; margin: 0;">KẾ HOẠCH DẠY HỌC MÔN ${subject.toUpperCase()} - ${grade.toUpperCase()}</h2>
+        <p style="margin: 5px 0;">Năm học: 2025 - 2026 | Mức độ: ${level}</p>
+        <p style="font-style: italic; font-size: 10pt;">(Tích hợp Năng lực số theo Khung năng lực số dành cho học sinh tiểu học)</p>
+      </div>
+    `;
+
+    const tableHeader = `
+      <thead>
+        <tr style="background-color: #f2f2f2;">
+          <th style="border: 1px solid black; padding: 8px; width: 50px;">Tuần</th>
+          <th style="border: 1px solid black; padding: 8px;">Chủ đề/Mạch nội dung</th>
+          <th style="border: 1px solid black; padding: 8px;">Tên bài học</th>
+          <th style="border: 1px solid black; padding: 8px; width: 40px;">Tiết</th>
+          <th style="border: 1px solid black; padding: 8px; width: 70px;">Mã NLS</th>
+          <th style="border: 1px solid black; padding: 8px;">Tích hợp NLS</th>
+          <th style="border: 1px solid black; padding: 8px;">Ghi chú</th>
+        </tr>
+      </thead>
+    `;
+
+    const tableRows = planRows.map(row => `
+      <tr>
+        <td style="border: 1px solid black; padding: 8px; text-align: center;">${row.weekMonth}</td>
+        <td style="border: 1px solid black; padding: 8px; white-space: pre-wrap;">${row.theme}</td>
+        <td style="border: 1px solid black; padding: 8px; font-weight: bold;">${row.lessonName}</td>
+        <td style="border: 1px solid black; padding: 8px; text-align: center;">${row.periods}</td>
+        <td style="border: 1px solid black; padding: 8px; text-align: center; font-weight: bold;">${row.digitalCompetencyCode}</td>
+        <td style="border: 1px solid black; padding: 8px; font-style: italic; font-size: 9pt;">${row.integrationSuggestions}</td>
+        <td style="border: 1px solid black; padding: 8px;">${row.note}</td>
+      </tr>
+    `).join('');
+
+    const footerHtml = `
+      <div style="margin-top: 40px; display: flex; justify-content: space-between;">
+        <table style="width: 100%; border: none;">
+          <tr>
+            <td style="text-align: center; width: 50%; border: none;">
+              <strong>Người lập kế hoạch</strong><br><em>(Ký và ghi rõ họ tên)</em>
+              <br><br><br><br>
+            </td>
+            <td style="text-align: center; width: 50%; border: none;">
+              <strong>Ban Giám hiệu duyệt</strong><br><em>(Ký tên và đóng dấu)</em>
+              <br><br><br><br>
+            </td>
+          </tr>
+        </table>
+      </div>
+    `;
+
+    const fullHtml = `
+      <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+      <head><meta charset='utf-8'><title>Kế hoạch dạy học</title>
+      <style>
+        body { font-family: 'Times New Roman', Times, serif; }
+        table { border-collapse: collapse; width: 100%; font-size: 11pt; }
+        th, td { border: 1px solid black; vertical-align: top; }
+      </style>
+      </head>
+      <body>
+        ${headerHtml}
+        <table>
+          ${tableHeader}
+          <tbody>
+            ${tableRows}
+          </tbody>
+        </table>
+        ${footerHtml}
+      </body>
+      </html>
+    `;
+
+    const blob = new Blob(['\ufeff', fullHtml], { type: 'application/msword' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `KeHoach_35Tuan_${subject}_Lop${grade}.doc`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const handlePrint = () => {
@@ -104,7 +186,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <Layout>
+    <Layout onExportDocx={exportToDocx} isDataReady={planRows.length > 0}>
       <div className="flex flex-wrap items-center justify-end gap-2 mb-8 no-print">
         {REGULATION_TAGS.map(tag => (
           <span key={tag.id} className="bg-slate-100 text-slate-600 text-[10px] font-bold px-3 py-1.5 rounded uppercase border border-slate-200">
@@ -232,13 +314,13 @@ const App: React.FC = () => {
               ) : (
                 planRows.map((row) => (
                   <tr key={row.id} className="hover:bg-slate-50/50 transition-colors text-sm">
-                    <td className="px-6 py-4 border-r border-slate-100 font-bold text-slate-700">{row.weekMonth}</td>
+                    <td className="px-6 py-4 border-r border-slate-100 font-bold text-slate-700 text-center">{row.weekMonth}</td>
                     <td className="px-6 py-4 border-r border-slate-100 text-slate-600 font-medium whitespace-pre-wrap leading-relaxed">
                       {row.theme}
                     </td>
                     <td className="px-6 py-4 border-r border-slate-100 text-slate-900 font-bold">{row.lessonName}</td>
                     <td className="px-6 py-4 border-r border-slate-100 text-center font-bold text-indigo-600 print:text-black">{row.periods}</td>
-                    <td className="px-6 py-4 border-r border-slate-100">
+                    <td className="px-6 py-4 border-r border-slate-100 text-center">
                       <span className="bg-indigo-50 text-indigo-700 px-2 py-1 rounded text-[10px] font-bold border border-indigo-100 badge-nls">
                         {row.digitalCompetencyCode}
                       </span>
