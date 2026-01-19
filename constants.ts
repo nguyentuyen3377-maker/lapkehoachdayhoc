@@ -17,6 +17,14 @@ export const SUBJECTS = [
 
 export const GRADES = ["Lớp 1", "Lớp 2", "Lớp 3", "Lớp 4", "Lớp 5"];
 
+export const ACADEMIC_YEARS = [
+  "2025 - 2026",
+  "2026 - 2027",
+  "2027 - 2028",
+  "2028 - 2029",
+  "2029 - 2030"
+];
+
 export const ATTAINMENT_LEVELS = [
   "Cơ bản 1 (Với sự hướng dẫn)",
   "Cơ bản 2 (Tự thực hiện)",

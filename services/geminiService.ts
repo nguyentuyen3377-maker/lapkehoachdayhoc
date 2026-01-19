@@ -1,11 +1,11 @@
 
 export class GeminiService {
-  async generateFullPlan(subject: string, grade: string, level: string) {
+  async generateFullPlan(subject: string, grade: string, level: string, academicYear: string) {
     try {
       const response = await fetch('/api/gemini', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subject, grade, level }),
+        body: JSON.stringify({ subject, grade, level, academicYear }),
       });
 
       const data = await response.json();
@@ -16,7 +16,6 @@ export class GeminiService {
       
       if (!data.text) throw new Error("Dữ liệu trả về trống.");
 
-      // Parse text từ backend trả về (đã được định dạng JSON nhờ schema)
       return JSON.parse(data.text);
     } catch (error: any) {
       console.error("Gemini Service Error:", error);

@@ -14,7 +14,7 @@ export interface ScheduleRow {
   lessonName: string;
   periods: number;
   digitalCompetencyCode: string; // Địa chỉ tích hợp NLS (Mã chỉ báo)
-  integrationSuggestions: string; // Gợi ý nội dung lồng ghép
+  learningOutcomes: string; // Yêu cầu cần đạt về Năng lực số (thay cho gợi ý tích hợp)
   note: string;
 }
 
@@ -22,5 +22,6 @@ export interface CurriculumPlan {
   subject: string;
   grade: string;
   attainmentLevel: string;
+  academicYear: string;
   rows: ScheduleRow[];
 }
