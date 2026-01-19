@@ -6,7 +6,7 @@ import { geminiService } from './services/geminiService';
 import { SUBJECTS, GRADES, ATTAINMENT_LEVELS, ACADEMIC_YEARS, REGULATION_TAGS } from './constants';
 
 const App: React.FC = () => {
-  const [subject, setSubject] = useState(SUBJECTS[1]); // Mặc định thử môn Toán để kiểm tra tính chọn lọc
+  const [subject, setSubject] = useState(SUBJECTS[2]); // Tiếng Việt
   const [grade, setGrade] = useState(GRADES[2]); 
   const [level, setLevel] = useState(ATTAINMENT_LEVELS[0]);
   const [academicYear, setAcademicYear] = useState(ACADEMIC_YEARS[0]);
@@ -15,10 +15,10 @@ const App: React.FC = () => {
   const [loadingMessage, setLoadingMessage] = useState("✨ Đang thiết lập...");
 
   const loadingSteps = [
-    "🔍 Phân tích chương trình môn học...",
-    "🛡️ Thẩm định các nội dung có thể ứng dụng công nghệ...",
-    "💡 Chỉ tích hợp NLS vào các bài học thực sự hiệu quả...",
-    "📝 Đang soạn thảo chi tiết 35 tuần...",
+    "🔍 Phân tích khung chương trình bộ giáo dục...",
+    "📖 Chi tiết hóa Chủ đề và Mạch nội dung...",
+    "🛡️ Thẩm định Năng lực số chọn lọc...",
+    "📝 Đang biên soạn 35 tuần học chuẩn...",
     "✅ Hoàn thiện kế hoạch sư phạm..."
   ];
 
@@ -60,7 +60,7 @@ const App: React.FC = () => {
 
   const exportToExcel = () => {
     if (planRows.length === 0) return alert("Chưa có dữ liệu!");
-    const headers = ["Tuần", "Chủ đề/Mạch nội dung", "Tên bài học", "Số tiết", "Mã NLS", "Yêu cầu cần đạt", "Ghi chú"];
+    const headers = ["Tuần", "Chủ đề/Mạch nội dung", "Tên bài học", "Số tiết", "Mã NLS", "Yêu cầu cần đạt NLS", "Ghi chú"];
     const csvRows = planRows.map(row => {
       const escape = (val: any) => `"${String(val || '').replace(/"/g, '""')}"`;
       return [escape(row.weekMonth), escape(row.theme), escape(row.lessonName), row.periods, escape(row.digitalCompetencyCode), escape(row.learningOutcomes), escape(row.note)].join(",");
@@ -79,10 +79,11 @@ const App: React.FC = () => {
       <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
       <head><meta charset='utf-8'><style>
         body { font-family: 'Times New Roman', serif; }
-        table { border-collapse: collapse; width: 100%; }
+        table { border-collapse: collapse; width: 100%; border: 1px solid black; }
         th, td { border: 1px solid black; padding: 6pt; font-size: 11pt; vertical-align: top; }
         .header { text-align: center; font-weight: bold; margin-bottom: 20pt; text-transform: uppercase; }
         .center { text-align: center; }
+        .bold { font-weight: bold; }
       </style></head>
       <body>
         <div class="header">
@@ -92,14 +93,14 @@ const App: React.FC = () => {
         </div>
         <table>
           <thead><tr style="background: #f3f4f6;">
-            <th width="8%">Tuần</th><th width="25%">Chủ đề/Mạch nội dung</th><th width="20%">Tên bài học</th><th width="5%">Tiết</th><th width="10%">Mã NLS</th><th width="22%">Yêu cầu cần đạt NLS</th><th width="10%">Ghi chú</th>
+            <th width="8%">Tuần</th><th width="30%">Chủ đề/Mạch nội dung</th><th width="18%">Tên bài học</th><th width="5%">Tiết</th><th width="8%">Mã NLS</th><th width="21%">YCCĐ Năng lực số</th><th width="10%">Ghi chú</th>
           </tr></thead>
           <tbody>
             ${planRows.map(row => `
               <tr>
                 <td class="center">${row.weekMonth}</td>
                 <td>${row.theme}</td>
-                <td><strong>${row.lessonName}</strong></td>
+                <td class="bold">${row.lessonName}</td>
                 <td class="center">${row.periods}</td>
                 <td class="center">${row.digitalCompetencyCode || ''}</td>
                 <td>${row.learningOutcomes || ''}</td>
@@ -107,6 +108,10 @@ const App: React.FC = () => {
               </tr>`).join('')}
           </tbody>
         </table>
+        <div style="margin-top: 30pt; display: flex; justify-content: space-around;">
+           <div style="text-align: center; width: 250pt;"><b>Người lập kế hoạch</b><br><i>(Ký và ghi rõ họ tên)</i></div>
+           <div style="text-align: center; width: 250pt;"><b>Ban Giám hiệu duyệt</b><br><i>(Ký tên và đóng dấu)</i></div>
+        </div>
       </body></html>`;
     const blob = new Blob(['\ufeff', fullHtml], { type: 'application/msword' });
     const link = document.createElement('a');
@@ -133,7 +138,7 @@ const App: React.FC = () => {
           <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
           </svg>
-          Phát triển Năng lực số chọn lọc - Năm học {academicYear}
+          Mạch kiến thức chi tiết & Tích hợp Năng lực số - {academicYear}
         </div>
       </div>
 
@@ -173,10 +178,10 @@ const App: React.FC = () => {
         <div className="p-6 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-50/50 no-print">
           <h2 className="text-lg font-bold text-slate-700 uppercase flex items-center">
             <span className="w-1 h-6 bg-indigo-500 mr-3 rounded-full"></span>
-            Chi tiết kế hoạch dạy học ({academicYear})
+            Kế hoạch dạy học 35 tuần
           </h2>
           <div className="flex space-x-2">
-            <button onClick={exportToExcel} className="inline-flex items-center px-4 py-2 bg-emerald-100 text-emerald-700 rounded-lg text-sm font-bold hover:bg-emerald-200 transition">Tải Excel (.csv)</button>
+            <button onClick={exportToExcel} className="inline-flex items-center px-4 py-2 bg-emerald-100 text-emerald-700 rounded-lg text-sm font-bold hover:bg-emerald-200 transition">Excel (.csv)</button>
             <button onClick={() => window.print()} className="inline-flex items-center px-4 py-2 bg-slate-800 text-white rounded-lg text-sm font-bold hover:bg-slate-900 transition">In PDF</button>
           </div>
         </div>
@@ -186,22 +191,28 @@ const App: React.FC = () => {
             <thead>
               <tr className="bg-slate-50 text-[11px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200 print:bg-white print:text-black">
                 <th className="px-6 py-4 border-r border-slate-200 w-20 text-center">Tuần</th>
-                <th className="px-6 py-4 border-r border-slate-200 min-w-[280px]">Chủ đề/Mạch nội dung</th>
+                <th className="px-6 py-4 border-r border-slate-200 min-w-[320px]">Chủ đề/Mạch nội dung</th>
                 <th className="px-6 py-4 border-r border-slate-200 min-w-[200px]">Tên bài học</th>
                 <th className="px-6 py-4 border-r border-slate-200 w-16 text-center">Tiết</th>
                 <th className="px-6 py-4 border-r border-slate-200 w-28 text-center">Mã NLS</th>
-                <th className="px-6 py-4 border-r border-slate-200 min-w-[300px]">YCCĐ Năng lực số</th>
+                <th className="px-6 py-4 border-r border-slate-200 min-w-[280px]">YCCĐ Năng lực số</th>
                 <th className="px-6 py-4 min-w-[150px]">Ghi chú</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {planRows.length === 0 ? (
-                <tr><td colSpan={7} className="px-6 py-32 text-center text-slate-400 italic">{isLoading ? loadingMessage : 'Vui lòng nhấn nút "Thiết lập bằng AI" để bắt đầu.'}</td></tr>
+                <tr><td colSpan={7} className="px-6 py-32 text-center text-slate-400 italic">{isLoading ? loadingMessage : 'Hệ thống đã sẵn sàng. Vui lòng nhấn nút "Thiết lập bằng AI".'}</td></tr>
               ) : (
                 planRows.map((row) => (
                   <tr key={row.id} className="hover:bg-slate-50/50 transition-colors text-sm">
                     <td className="px-6 py-4 border-r border-slate-100 font-bold text-slate-700 text-center">{row.weekMonth}</td>
-                    <td className="px-6 py-4 border-r border-slate-100 whitespace-pre-wrap leading-relaxed text-slate-600">{row.theme}</td>
+                    <td className="px-6 py-4 border-r border-slate-100 leading-relaxed text-slate-600">
+                       {row.theme.split(' - ').map((part, i) => (
+                         <div key={i} className={i === 0 ? "font-bold text-slate-800 mb-1" : "text-xs italic"}>
+                           {part}
+                         </div>
+                       ))}
+                    </td>
                     <td className="px-6 py-4 border-r border-slate-100 font-bold text-slate-900">{row.lessonName}</td>
                     <td className="px-6 py-4 border-r border-slate-100 text-center font-bold text-indigo-600 print:text-black">{row.periods}</td>
                     <td className="px-6 py-4 border-r border-slate-100 text-center">
@@ -214,7 +225,7 @@ const App: React.FC = () => {
                       )}
                     </td>
                     <td className="px-6 py-4 border-r border-slate-100 text-slate-600 text-xs leading-relaxed font-medium">
-                      {row.learningOutcomes || <span className="text-slate-400 italic text-[10px] uppercase opacity-60">Không tích hợp</span>}
+                      {row.learningOutcomes || <span className="text-slate-400 italic text-[10px] uppercase opacity-40">Không tích hợp NLS</span>}
                     </td>
                     <td className="px-6 py-4">
                       <input type="text" value={row.note} onChange={(e) => updateNote(row.id, e.target.value)} className="w-full bg-transparent border-none text-xs focus:ring-0" placeholder="..." />

@@ -18,24 +18,29 @@ export default async function handler(req: any, res: any) {
 
   const ai = new GoogleGenAI({ apiKey });
 
-  const prompt = `Bạn là chuyên gia sư phạm tiểu học hàng đầu Việt Nam, chuyên trách về Đổi mới sáng tạo và Chuyển đổi số giáo dục.
+  const prompt = `Bạn là chuyên gia sư phạm tiểu học hàng đầu Việt Nam.
   Nhiệm vụ: Lập kế hoạch dạy học môn ${subject} lớp ${grade} cho năm học ${academicYear} (Mức độ: ${level}).
-  
-  CHIẾN LƯỢC TÍCH HỢP NĂNG LỰC SỐ (NLS) "CHẤT LƯỢNG HƠN SỐ LƯỢNG":
-  1. KHÔNG TÍCH HỢP MÁY MÓC: Tuyệt đối không ép bài nào cũng có NLS. Áp dụng cho TẤT CẢ các môn học.
-  2. TIÊU CHÍ CHỌN BÀI TÍCH HỢP:
-     - Chỉ chọn những bài học mà việc dùng công cụ số (Internet, phần mềm, thiết bị trình chiếu, robot...) giúp học sinh hiểu bài sâu hơn hoặc giải quyết vấn đề tốt hơn.
-     - Các tiết học mang tính chất: Rèn kỹ năng tay (viết chữ, vẽ chì, hát, vận động), Ôn tập lý thuyết thuần túy, Kiểm tra định kỳ... thường KHÔNG cần tích hợp NLS.
-  3. ĐỊNH DẠNG NỘI DUNG:
-     - "learningOutcomes": Nếu tích hợp, ghi rõ hành động cụ thể của học sinh liên quan đến kỹ thuật số (Ví dụ: "Sử dụng máy tính để tra cứu ảnh động vật", "Thực hiện trình bày ý tưởng qua sơ đồ tư duy số"). Nếu không thấy phù hợp, để trống "".
-     - "digitalCompetencyCode": Ghi mã (1.1.CB1, 2.3.K2...) tương ứng nếu có tích hợp. Nếu không, để trống "".
-  
-  Yêu cầu về chuyên môn môn học:
-  - Phải đúng mạch kiến thức của CT GDPT 2018 cho môn ${subject} lớp ${grade}.
-  - Phân bổ 35 tuần hợp lý, có tuần ôn tập và kiểm tra.
-  
+
+  QUY TẮC CẤU TRÚC NỘI DUNG (QUAN TRỌNG):
+  1. TRƯỜNG "theme": Phải bao gồm cả Chủ đề và Mạch nội dung chi tiết.
+     ĐỊNH DẠNG BẮT BUỘC: "Chủ đề: [Tên chủ đề] - Mạch nội dung: [Chi tiết mạch kiến thức/kỹ năng cần truyền đạt]".
+     Ví dụ: "Chủ đề: Máy tính và em - Mạch nội dung: Thành phần của máy tính và cách sử dụng chuột".
+
+  2. CHIẾN LƯỢC TÍCH HỢP NĂNG LỰC SỐ (NLS):
+     - KHÔNG TÍCH HỢP MÁY MÓC vào mọi tuần. 
+     - Chỉ chọn những bài học mà việc dùng công cụ số thực sự mang lại hiệu quả vượt trội.
+     - Các tiết rèn kỹ năng thủ công, ôn tập lý thuyết đơn thuần, hoặc kiểm tra viết trên giấy thì KHÔNG tích hợp NLS.
+
+  3. ĐỊNH DẠNG TRẢ VỀ:
+     - "learningOutcomes": Ghi rõ hành động của học sinh (Ví dụ: "Sử dụng bảng tương tác để kéo thả các hình khối"). Nếu không phù hợp, để trống "".
+     - "digitalCompetencyCode": Ghi mã chỉ báo phù hợp. Nếu không, để trống "".
+
+  Yêu cầu về chuyên môn:
+  - Phân bổ 35 tuần học theo khung chương trình hiện hành.
+  - Nội dung mạch kiến thức phải chính xác với CT GDPT 2018 của môn ${subject} ${grade}.
+
   Cấu trúc trả về: JSON array 35 objects.
-  Trường: weekMonth (Tuần 1, Tuần 2...), theme (Chủ đề/Mạch nội dung), lessonName (Tên bài học), periods (Số tiết), digitalCompetencyCode, learningOutcomes.`;
+  Trường: weekMonth, theme, lessonName, periods, digitalCompetencyCode, learningOutcomes.`;
 
   try {
     const response = await ai.models.generateContent({
@@ -58,7 +63,7 @@ export default async function handler(req: any, res: any) {
             required: ["weekMonth", "theme", "lessonName", "periods", "digitalCompetencyCode", "learningOutcomes"]
           }
         },
-        temperature: 0.3, // Giảm thêm để AI bớt "sáng tạo" quá đà, tập trung vào tính logic sư phạm
+        temperature: 0.25, // Giữ độ ổn định cao cho dữ liệu chuyên môn
       },
     });
 
