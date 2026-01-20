@@ -13,32 +13,36 @@ export default async function handler(req: any, res: any) {
     return res.status(400).json({ error: 'Thiếu thông tin đầu vào' });
   }
 
+  // Xác định mức độ mã chỉ báo dựa trên khối lớp
+  const isUpperPrimary = grade.includes("4") || grade.includes("5");
+  const competencyLevel = isUpperPrimary ? "CB2 (Mức độ L4-L5)" : "CB1 (Mức độ L1-L2-L3)";
+  const codePrefix = isUpperPrimary ? "CB2" : "CB1";
+
   const apiKey = process.env.API_KEY;
   if (!apiKey) return res.status(500).json({ error: 'API Key không khả dụng.' });
 
   const ai = new GoogleGenAI({ apiKey });
 
-  const prompt = `Bạn là chuyên gia sư phạm tiểu học. Hãy lập kế hoạch dạy học môn ${subject} lớp ${grade} (${academicYear}).
+  const prompt = `Bạn là chuyên gia sư phạm tiểu học và lập trình viên giáo dục. 
+  Hãy lập kế hoạch dạy học môn ${subject} lớp ${grade} cho năm học ${academicYear}.
 
-  YÊU CẦU VỀ NỘI DUNG CHUYÊN MÔN:
-  1. TRƯỜNG "theme" (Chủ đề & Mạch nội dung): 
-     - Phải ghi rõ: "Chủ đề: [Tên chủ đề] - Mạch nội dung: [Hành động cụ thể/Nội dung kiến thức chi tiết]".
-     - Ví dụ (Khoa học): "Chủ đề: Nước - Mạch nội dung: Thí nghiệm xác định tính chất vật lý (không màu, không mùi, không vị) và khả năng hòa tan của nước".
-     - Ví dụ (Toán): "Chủ đề: Phép nhân - Mạch nội dung: Hình thành ý nghĩa phép nhân thông qua tổng các số hạng bằng nhau".
+  QUY TẮC CHUYÊN MÔN BẮT BUỘC (Dựa trên văn bản 3456/BGDĐT-GDPT):
+  
+  1. PHÂN TẦNG MÃ CHỈ BÁO NĂNG LỰC SỐ (NLS):
+     - Vì đây là ${grade}, bạn PHẢI sử dụng mức độ: ${competencyLevel}.
+     - Tất cả các mã chỉ báo phải có định dạng chứa "${codePrefix}". 
+     - Ví dụ cho lớp 4, 5: 1.1.CB2a, 1.2.CB2a, 2.1.CB2a, 3.1.CB2b, 5.1.CB2a... (TUYỆT ĐỐI KHÔNG DÙNG CB1).
+     - Ví dụ cho lớp 1, 2, 3: 1.1.CB1a, 2.1.CB1b...
 
-  2. TRƯỜNG "digitalCompetencyCode" (Mã chỉ báo NLS):
-     - BẮT BUỘC sử dụng bảng mã theo văn bản 3456/BGDĐT-GDPT.
-     - Định dạng mã: [Miền].[Thành phần].[Mức độ][STT]. Ví dụ: 1.1.CB1a, 1.2.CB1a, 2.1.CB1a, 3.1.CB1a, 4.1.CB1b, 5.1.CB1a, 6.2.CB1b...
-     - Chỉ tích hợp khi bài học thực sự có đất diễn cho công nghệ.
+  2. CHI TIẾT MẠCH NỘI DUNG (Trường "theme"):
+     - Định dạng: "Chủ đề: [Tên chủ đề] - Mạch nội dung: [Mô tả chi tiết]".
+     - Phần mô tả mạch nội dung PHẢI dài từ 2-3 dòng, nêu rõ hành động sư phạm và kiến thức lõi.
+     - Ví dụ (Khoa học lớp 4): "Chủ đề: Nước - Mạch nội dung: Thực hiện thí nghiệm quan sát để xác định nước là chất lỏng không màu, không mùi, không vị; quan sát hiện tượng nước thấm qua vải nhưng không thấm qua nilon để hiểu về tính thấm; thí nghiệm nước chảy từ cao xuống thấp và lan ra mọi phía."
 
-  3. TRƯỜNG "learningOutcomes" (YCCĐ Năng lực số):
-     - Nội dung phải khớp với cột YCCD trong bảng mã 3456.
-     - Ví dụ với mã 1.1.CB1a: "Xác định được nhu cầu thông tin, tìm kiếm dữ liệu thông qua tìm kiếm đơn giản trong môi trường số".
-     - Ví dụ với mã 2.1.CB1a: "Lựa chọn được các công nghệ số đơn giản để tương tác".
+  3. YÊU CẦU CẦN ĐẠT NĂNG LỰC SỐ (Trường "learningOutcomes"):
+     - Phải trích dẫn đúng văn phong của cột YCCD trong bảng mã 3456 tương ứng với mã ${codePrefix} đã chọn.
 
-  Yêu cầu về cấu trúc:
-  - 35 tuần học (bao gồm ôn tập, kiểm tra).
-  - Trả về JSON array: { weekMonth, theme, lessonName, periods, digitalCompetencyCode, learningOutcomes }.`;
+  Yêu cầu cấu trúc: 35 tuần học. Trả về JSON array: { weekMonth, theme, lessonName, periods, digitalCompetencyCode, learningOutcomes }.`;
 
   try {
     const response = await ai.models.generateContent({
@@ -61,7 +65,7 @@ export default async function handler(req: any, res: any) {
             required: ["weekMonth", "theme", "lessonName", "periods", "digitalCompetencyCode", "learningOutcomes"]
           }
         },
-        temperature: 0.2,
+        temperature: 0.1, // Giảm tối đa sự sáng tạo để đảm bảo độ chính xác của mã chỉ báo
       },
     });
 
