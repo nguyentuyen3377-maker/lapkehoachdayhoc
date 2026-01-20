@@ -18,29 +18,27 @@ export default async function handler(req: any, res: any) {
 
   const ai = new GoogleGenAI({ apiKey });
 
-  const prompt = `Bạn là chuyên gia sư phạm tiểu học hàng đầu Việt Nam.
-  Nhiệm vụ: Lập kế hoạch dạy học môn ${subject} lớp ${grade} cho năm học ${academicYear} (Mức độ: ${level}).
+  const prompt = `Bạn là chuyên gia sư phạm tiểu học. Hãy lập kế hoạch dạy học môn ${subject} lớp ${grade} (${academicYear}).
 
-  QUY TẮC CẤU TRÚC NỘI DUNG (QUAN TRỌNG):
-  1. TRƯỜNG "theme": Phải bao gồm cả Chủ đề và Mạch nội dung chi tiết.
-     ĐỊNH DẠNG BẮT BUỘC: "Chủ đề: [Tên chủ đề] - Mạch nội dung: [Chi tiết mạch kiến thức/kỹ năng cần truyền đạt]".
-     Ví dụ: "Chủ đề: Máy tính và em - Mạch nội dung: Thành phần của máy tính và cách sử dụng chuột".
+  YÊU CẦU VỀ NỘI DUNG CHUYÊN MÔN:
+  1. TRƯỜNG "theme" (Chủ đề & Mạch nội dung): 
+     - Phải ghi rõ: "Chủ đề: [Tên chủ đề] - Mạch nội dung: [Hành động cụ thể/Nội dung kiến thức chi tiết]".
+     - Ví dụ (Khoa học): "Chủ đề: Nước - Mạch nội dung: Thí nghiệm xác định tính chất vật lý (không màu, không mùi, không vị) và khả năng hòa tan của nước".
+     - Ví dụ (Toán): "Chủ đề: Phép nhân - Mạch nội dung: Hình thành ý nghĩa phép nhân thông qua tổng các số hạng bằng nhau".
 
-  2. CHIẾN LƯỢC TÍCH HỢP NĂNG LỰC SỐ (NLS):
-     - KHÔNG TÍCH HỢP MÁY MÓC vào mọi tuần. 
-     - Chỉ chọn những bài học mà việc dùng công cụ số thực sự mang lại hiệu quả vượt trội.
-     - Các tiết rèn kỹ năng thủ công, ôn tập lý thuyết đơn thuần, hoặc kiểm tra viết trên giấy thì KHÔNG tích hợp NLS.
+  2. TRƯỜNG "digitalCompetencyCode" (Mã chỉ báo NLS):
+     - BẮT BUỘC sử dụng bảng mã theo văn bản 3456/BGDĐT-GDPT.
+     - Định dạng mã: [Miền].[Thành phần].[Mức độ][STT]. Ví dụ: 1.1.CB1a, 1.2.CB1a, 2.1.CB1a, 3.1.CB1a, 4.1.CB1b, 5.1.CB1a, 6.2.CB1b...
+     - Chỉ tích hợp khi bài học thực sự có đất diễn cho công nghệ.
 
-  3. ĐỊNH DẠNG TRẢ VỀ:
-     - "learningOutcomes": Ghi rõ hành động của học sinh (Ví dụ: "Sử dụng bảng tương tác để kéo thả các hình khối"). Nếu không phù hợp, để trống "".
-     - "digitalCompetencyCode": Ghi mã chỉ báo phù hợp. Nếu không, để trống "".
+  3. TRƯỜNG "learningOutcomes" (YCCĐ Năng lực số):
+     - Nội dung phải khớp với cột YCCD trong bảng mã 3456.
+     - Ví dụ với mã 1.1.CB1a: "Xác định được nhu cầu thông tin, tìm kiếm dữ liệu thông qua tìm kiếm đơn giản trong môi trường số".
+     - Ví dụ với mã 2.1.CB1a: "Lựa chọn được các công nghệ số đơn giản để tương tác".
 
-  Yêu cầu về chuyên môn:
-  - Phân bổ 35 tuần học theo khung chương trình hiện hành.
-  - Nội dung mạch kiến thức phải chính xác với CT GDPT 2018 của môn ${subject} ${grade}.
-
-  Cấu trúc trả về: JSON array 35 objects.
-  Trường: weekMonth, theme, lessonName, periods, digitalCompetencyCode, learningOutcomes.`;
+  Yêu cầu về cấu trúc:
+  - 35 tuần học (bao gồm ôn tập, kiểm tra).
+  - Trả về JSON array: { weekMonth, theme, lessonName, periods, digitalCompetencyCode, learningOutcomes }.`;
 
   try {
     const response = await ai.models.generateContent({
@@ -63,7 +61,7 @@ export default async function handler(req: any, res: any) {
             required: ["weekMonth", "theme", "lessonName", "periods", "digitalCompetencyCode", "learningOutcomes"]
           }
         },
-        temperature: 0.25, // Giữ độ ổn định cao cho dữ liệu chuyên môn
+        temperature: 0.2,
       },
     });
 

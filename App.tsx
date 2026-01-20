@@ -6,8 +6,8 @@ import { geminiService } from './services/geminiService';
 import { SUBJECTS, GRADES, ATTAINMENT_LEVELS, ACADEMIC_YEARS, REGULATION_TAGS } from './constants';
 
 const App: React.FC = () => {
-  const [subject, setSubject] = useState(SUBJECTS[2]); // Tiếng Việt
-  const [grade, setGrade] = useState(GRADES[2]); 
+  const [subject, setSubject] = useState(SUBJECTS[5]); // Khoa học để test yêu cầu của bạn
+  const [grade, setGrade] = useState(GRADES[3]); // Lớp 4
   const [level, setLevel] = useState(ATTAINMENT_LEVELS[0]);
   const [academicYear, setAcademicYear] = useState(ACADEMIC_YEARS[0]);
   const [planRows, setPlanRows] = useState<ScheduleRow[]>([]);
@@ -15,10 +15,10 @@ const App: React.FC = () => {
   const [loadingMessage, setLoadingMessage] = useState("✨ Đang thiết lập...");
 
   const loadingSteps = [
-    "🔍 Phân tích khung chương trình bộ giáo dục...",
-    "📖 Chi tiết hóa Chủ đề và Mạch nội dung...",
-    "🛡️ Thẩm định Năng lực số chọn lọc...",
-    "📝 Đang biên soạn 35 tuần học chuẩn...",
+    "🔍 Áp dụng Bảng mã chỉ báo 3456/BGDĐT-GDPT...",
+    "📖 Chi tiết hóa Mạch nội dung bài học...",
+    "🛡️ Thẩm định YCCĐ Năng lực số chuẩn xác...",
+    "📝 Đang biên soạn kế hoạch 35 tuần...",
     "✅ Hoàn thiện kế hoạch sư phạm..."
   ];
 
@@ -58,21 +58,6 @@ const App: React.FC = () => {
     setPlanRows(prev => prev.map(row => row.id === id ? { ...row, note } : row));
   };
 
-  const exportToExcel = () => {
-    if (planRows.length === 0) return alert("Chưa có dữ liệu!");
-    const headers = ["Tuần", "Chủ đề/Mạch nội dung", "Tên bài học", "Số tiết", "Mã NLS", "Yêu cầu cần đạt NLS", "Ghi chú"];
-    const csvRows = planRows.map(row => {
-      const escape = (val: any) => `"${String(val || '').replace(/"/g, '""')}"`;
-      return [escape(row.weekMonth), escape(row.theme), escape(row.lessonName), row.periods, escape(row.digitalCompetencyCode), escape(row.learningOutcomes), escape(row.note)].join(",");
-    });
-    const csvContent = "\ufeff" + headers.join(",") + "\n" + csvRows.join("\n");
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = `KH_${subject}_Lop${grade}_${academicYear.replace(/\s/g, '')}.csv`;
-    link.click();
-  };
-
   const exportToDocx = () => {
     if (planRows.length === 0) return;
     const fullHtml = `
@@ -80,43 +65,47 @@ const App: React.FC = () => {
       <head><meta charset='utf-8'><style>
         body { font-family: 'Times New Roman', serif; }
         table { border-collapse: collapse; width: 100%; border: 1px solid black; }
-        th, td { border: 1px solid black; padding: 6pt; font-size: 11pt; vertical-align: top; }
+        th, td { border: 1px solid black; padding: 6pt; font-size: 10.5pt; vertical-align: top; }
         .header { text-align: center; font-weight: bold; margin-bottom: 20pt; text-transform: uppercase; }
         .center { text-align: center; }
         .bold { font-weight: bold; }
+        .small-italic { font-size: 9pt; font-style: italic; color: #444; }
       </style></head>
       <body>
         <div class="header">
           KẾ HOẠCH DẠY HỌC MÔN ${subject.toUpperCase()} - ${grade.toUpperCase()}<br>
           NĂM HỌC: ${academicYear}<br>
-          <span style="font-size: 10pt; font-style: italic; font-weight: normal;">(Tích hợp Năng lực số chọn lọc theo Khung NLS tiểu học)</span>
+          <span style="font-size: 10pt; font-style: italic; font-weight: normal;">(Tích hợp Năng lực số theo VB 3456/BGDĐT-GDPT)</span>
         </div>
         <table>
           <thead><tr style="background: #f3f4f6;">
-            <th width="8%">Tuần</th><th width="30%">Chủ đề/Mạch nội dung</th><th width="18%">Tên bài học</th><th width="5%">Tiết</th><th width="8%">Mã NLS</th><th width="21%">YCCĐ Năng lực số</th><th width="10%">Ghi chú</th>
+            <th width="7%">Tuần</th><th width="28%">Chủ đề & Mạch nội dung</th><th width="18%">Tên bài học</th><th width="5%">Tiết</th><th width="10%">Mã NLS (3456)</th><th width="22%">YCCĐ Năng lực số</th><th width="10%">Ghi chú</th>
           </tr></thead>
           <tbody>
-            ${planRows.map(row => `
-              <tr>
-                <td class="center">${row.weekMonth}</td>
-                <td>${row.theme}</td>
-                <td class="bold">${row.lessonName}</td>
-                <td class="center">${row.periods}</td>
-                <td class="center">${row.digitalCompetencyCode || ''}</td>
-                <td>${row.learningOutcomes || ''}</td>
-                <td>${row.note}</td>
-              </tr>`).join('')}
+            ${planRows.map(row => {
+              const themeParts = row.theme.split(' - ');
+              return `
+                <tr>
+                  <td class="center">${row.weekMonth}</td>
+                  <td><b>${themeParts[0]}</b><br><span class="small-italic">${themeParts[1] || ''}</span></td>
+                  <td class="bold">${row.lessonName}</td>
+                  <td class="center">${row.periods}</td>
+                  <td class="center">${row.digitalCompetencyCode || ''}</td>
+                  <td>${row.learningOutcomes || ''}</td>
+                  <td>${row.note}</td>
+                </tr>`;
+            }).join('')}
           </tbody>
         </table>
-        <div style="margin-top: 30pt; display: flex; justify-content: space-around;">
-           <div style="text-align: center; width: 250pt;"><b>Người lập kế hoạch</b><br><i>(Ký và ghi rõ họ tên)</i></div>
-           <div style="text-align: center; width: 250pt;"><b>Ban Giám hiệu duyệt</b><br><i>(Ký tên và đóng dấu)</i></div>
+        <div style="margin-top: 40pt; display: flex; justify-content: space-around;">
+           <div style="text-align: center; width: 200pt;"><b>Người lập kế hoạch</b><br><i>(Ký và ghi rõ họ tên)</i></div>
+           <div style="text-align: center; width: 200pt;"><b>Ban Giám hiệu duyệt</b><br><i>(Ký tên và đóng dấu)</i></div>
         </div>
       </body></html>`;
     const blob = new Blob(['\ufeff', fullHtml], { type: 'application/msword' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `KH_${subject}_Lop${grade}_${academicYear.replace(/\s/g, '')}.doc`;
+    link.download = `KH_3456_${subject}_Lop${grade}.doc`;
     link.click();
   };
 
@@ -138,7 +127,7 @@ const App: React.FC = () => {
           <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
           </svg>
-          Mạch kiến thức chi tiết & Tích hợp Năng lực số - {academicYear}
+          Mã chỉ báo 3456/BGDĐT-GDPT & Mạch nội dung chi tiết
         </div>
       </div>
 
@@ -175,72 +164,58 @@ const App: React.FC = () => {
       </div>
 
       <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden min-h-[400px]">
-        <div className="p-6 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-50/50 no-print">
-          <h2 className="text-lg font-bold text-slate-700 uppercase flex items-center">
-            <span className="w-1 h-6 bg-indigo-500 mr-3 rounded-full"></span>
-            Kế hoạch dạy học 35 tuần
-          </h2>
-          <div className="flex space-x-2">
-            <button onClick={exportToExcel} className="inline-flex items-center px-4 py-2 bg-emerald-100 text-emerald-700 rounded-lg text-sm font-bold hover:bg-emerald-200 transition">Excel (.csv)</button>
-            <button onClick={() => window.print()} className="inline-flex items-center px-4 py-2 bg-slate-800 text-white rounded-lg text-sm font-bold hover:bg-slate-900 transition">In PDF</button>
-          </div>
-        </div>
-
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50 text-[11px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200 print:bg-white print:text-black">
                 <th className="px-6 py-4 border-r border-slate-200 w-20 text-center">Tuần</th>
-                <th className="px-6 py-4 border-r border-slate-200 min-w-[320px]">Chủ đề/Mạch nội dung</th>
+                <th className="px-6 py-4 border-r border-slate-200 min-w-[320px]">Chủ đề & Mạch nội dung</th>
                 <th className="px-6 py-4 border-r border-slate-200 min-w-[200px]">Tên bài học</th>
                 <th className="px-6 py-4 border-r border-slate-200 w-16 text-center">Tiết</th>
-                <th className="px-6 py-4 border-r border-slate-200 w-28 text-center">Mã NLS</th>
-                <th className="px-6 py-4 border-r border-slate-200 min-w-[280px]">YCCĐ Năng lực số</th>
+                <th className="px-6 py-4 border-r border-slate-200 w-32 text-center text-indigo-600">Mã 3456</th>
+                <th className="px-6 py-4 border-r border-slate-200 min-w-[300px]">YCCĐ Năng lực số</th>
                 <th className="px-6 py-4 min-w-[150px]">Ghi chú</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {planRows.length === 0 ? (
-                <tr><td colSpan={7} className="px-6 py-32 text-center text-slate-400 italic">{isLoading ? loadingMessage : 'Hệ thống đã sẵn sàng. Vui lòng nhấn nút "Thiết lập bằng AI".'}</td></tr>
+                <tr><td colSpan={7} className="px-6 py-32 text-center text-slate-400 italic">{isLoading ? loadingMessage : 'Hệ thống đã cập nhật bảng mã 3456. Vui lòng thử tạo lại.'}</td></tr>
               ) : (
-                planRows.map((row) => (
-                  <tr key={row.id} className="hover:bg-slate-50/50 transition-colors text-sm">
-                    <td className="px-6 py-4 border-r border-slate-100 font-bold text-slate-700 text-center">{row.weekMonth}</td>
-                    <td className="px-6 py-4 border-r border-slate-100 leading-relaxed text-slate-600">
-                       {row.theme.split(' - ').map((part, i) => (
-                         <div key={i} className={i === 0 ? "font-bold text-slate-800 mb-1" : "text-xs italic"}>
-                           {part}
+                planRows.map((row) => {
+                  const themeParts = row.theme.split(' - ');
+                  return (
+                    <tr key={row.id} className="hover:bg-slate-50/50 transition-colors text-sm">
+                      <td className="px-6 py-4 border-r border-slate-100 font-bold text-slate-700 text-center">{row.weekMonth}</td>
+                      <td className="px-6 py-4 border-r border-slate-100 leading-relaxed">
+                         <div className="font-bold text-slate-800 mb-1">{themeParts[0]}</div>
+                         <div className="text-[11px] text-slate-500 italic bg-slate-50 p-1.5 rounded-lg border border-slate-100">
+                           {themeParts[1] || ''}
                          </div>
-                       ))}
-                    </td>
-                    <td className="px-6 py-4 border-r border-slate-100 font-bold text-slate-900">{row.lessonName}</td>
-                    <td className="px-6 py-4 border-r border-slate-100 text-center font-bold text-indigo-600 print:text-black">{row.periods}</td>
-                    <td className="px-6 py-4 border-r border-slate-100 text-center">
-                      {row.digitalCompetencyCode ? (
-                        <span className="bg-indigo-50 text-indigo-700 px-2 py-1 rounded text-[10px] font-bold border border-indigo-100">
-                          {row.digitalCompetencyCode}
-                        </span>
-                      ) : (
-                        <span className="text-slate-300">---</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 border-r border-slate-100 text-slate-600 text-xs leading-relaxed font-medium">
-                      {row.learningOutcomes || <span className="text-slate-400 italic text-[10px] uppercase opacity-40">Không tích hợp NLS</span>}
-                    </td>
-                    <td className="px-6 py-4">
-                      <input type="text" value={row.note} onChange={(e) => updateNote(row.id, e.target.value)} className="w-full bg-transparent border-none text-xs focus:ring-0" placeholder="..." />
-                    </td>
-                  </tr>
-                ))
+                      </td>
+                      <td className="px-6 py-4 border-r border-slate-100 font-bold text-slate-900">{row.lessonName}</td>
+                      <td className="px-6 py-4 border-r border-slate-100 text-center font-bold text-indigo-600 print:text-black">{row.periods}</td>
+                      <td className="px-6 py-4 border-r border-slate-100 text-center">
+                        {row.digitalCompetencyCode ? (
+                          <span className="bg-indigo-600 text-white px-2.5 py-1 rounded-md text-[10px] font-black shadow-sm tracking-tighter">
+                            {row.digitalCompetencyCode}
+                          </span>
+                        ) : (
+                          <span className="text-slate-300">---</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 border-r border-slate-100 text-slate-600 text-xs leading-relaxed font-medium">
+                        {row.learningOutcomes || <span className="text-slate-400 italic text-[10px] uppercase opacity-40">Không tích hợp</span>}
+                      </td>
+                      <td className="px-6 py-4">
+                        <input type="text" value={row.note} onChange={(e) => updateNote(row.id, e.target.value)} className="w-full bg-transparent border-none text-xs focus:ring-0" placeholder="..." />
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
         </div>
-      </div>
-      
-      <div className="print-footer mt-10">
-        <div className="text-center w-64"><p className="font-bold">Người lập kế hoạch</p><p className="italic text-xs">(Ký và ghi rõ họ tên)</p><div className="h-24"></div></div>
-        <div className="text-center w-64"><p className="font-bold">Ban Giám hiệu duyệt</p><p className="italic text-xs">(Ký tên và đóng dấu)</p><div className="h-24"></div></div>
       </div>
     </Layout>
   );
